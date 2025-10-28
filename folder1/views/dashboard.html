@@ -1,0 +1,671 @@
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Dashboard - UID Manager</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <style>
+        .dashboard-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .welcome-header {
+            background: linear-gradient(135deg, var(--surface) 0%, #fafafa 100%);
+            border: 2px solid var(--primary-yellow);
+            border-radius: 20px;
+            padding: 2.5rem;
+            margin-bottom: 2.5rem;
+            box-shadow: var(--shadow-lg);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .welcome-header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, rgba(255, 193, 7, 0.08) 0%, rgba(255, 179, 0, 0.12) 100%);
+            z-index: 0;
+        }
+
+        .welcome-header-content {
+            position: relative;
+            z-index: 1;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1.5rem;
+        }
+
+        .welcome-text h2 {
+            font-size: 2.2rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, var(--black) 0%, var(--grey) 50%, var(--primary-yellow) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 0.5rem;
+            animation: fadeInLeft 0.6s ease-out;
+        }
+
+        .welcome-text p {
+            color: var(--text-secondary);
+            font-size: 15px;
+            font-weight: 500;
+        }
+
+        .credits-display {
+            background: linear-gradient(135deg, var(--black) 0%, var(--grey) 100%);
+            color: var(--primary-yellow);
+            padding: 1.2rem 2.5rem;
+            border-radius: 16px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+            border: 2px solid var(--primary-yellow);
+            animation: fadeInRight 0.6s ease-out;
+        }
+
+        .credits-display .credits-label {
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            opacity: 0.9;
+            margin-bottom: 0.3rem;
+        }
+
+        .credits-display .credits-amount {
+            font-size: 2.5rem;
+            font-weight: 800;
+            line-height: 1;
+        }
+
+        @keyframes fadeInLeft {
+            from {
+                opacity: 0;
+                transform: translateX(-30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        @keyframes fadeInRight {
+            from {
+                opacity: 0;
+                transform: translateX(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2.5rem;
+        }
+
+        .stat-card {
+            background: var(--surface);
+            border: 2px solid var(--border);
+            border-radius: 16px;
+            padding: 2rem;
+            transition: all var(--transition-smooth);
+            box-shadow: var(--shadow-sm);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 4px;
+            height: 100%;
+            background: linear-gradient(180deg, var(--primary-yellow) 0%, var(--yellow-hover) 100%);
+            transform: scaleY(0);
+            transition: transform var(--transition-smooth);
+        }
+
+        .stat-card:hover {
+            border-color: var(--primary-yellow);
+            transform: translateY(-8px) scale(1.02);
+            box-shadow: var(--shadow-yellow);
+        }
+
+        .stat-card:hover::before {
+            transform: scaleY(1);
+        }
+
+        .stat-icon {
+            width: 50px;
+            height: 50px;
+            background: linear-gradient(135deg, var(--primary-yellow) 0%, var(--yellow-hover) 100%);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            margin-bottom: 1rem;
+            box-shadow: 0 4px 15px rgba(255, 193, 7, 0.3);
+        }
+
+        .stat-label {
+            font-size: 13px;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 800;
+            color: var(--text-primary);
+            margin-bottom: 0.3rem;
+        }
+
+        .stat-description {
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        .actions-section {
+            background: var(--surface);
+            border: 2px solid var(--border);
+            border-radius: 20px;
+            padding: 2.5rem;
+            margin-bottom: 2.5rem;
+            box-shadow: var(--shadow-md);
+        }
+
+        .actions-section h3 {
+            font-size: 1.6rem;
+            font-weight: 700;
+            margin-bottom: 1.5rem;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+        }
+
+        .actions-section h3::before {
+            content: '⚡';
+            font-size: 1.8rem;
+        }
+
+        .action-buttons {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.2rem;
+        }
+
+        .action-btn {
+            background: linear-gradient(135deg, var(--primary-yellow) 0%, var(--yellow-hover) 100%);
+            color: var(--black);
+            padding: 1.3rem 2rem;
+            border-radius: 12px;
+            text-decoration: none;
+            font-weight: 700;
+            font-size: 15px;
+            text-align: center;
+            transition: all var(--transition-base);
+            box-shadow: var(--shadow-sm);
+            border: 2px solid transparent;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.8rem;
+        }
+
+        .action-btn:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--shadow-yellow);
+        }
+
+        .action-btn.secondary {
+            background: var(--surface);
+            color: var(--primary-yellow);
+            border: 2px solid var(--primary-yellow);
+        }
+
+        .action-btn.secondary:hover {
+            background: var(--primary-yellow);
+            color: var(--black);
+        }
+
+        .uid-management {
+            background: var(--surface);
+            border: 2px solid var(--border);
+            border-radius: 20px;
+            padding: 2.5rem;
+            box-shadow: var(--shadow-md);
+            transition: all var(--transition-smooth);
+        }
+
+        .uid-management:hover {
+            box-shadow: var(--shadow-lg);
+            border-color: var(--primary-yellow);
+        }
+
+        .uid-management h3 {
+            font-size: 1.6rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+        }
+
+        .uid-management h3::before {
+            content: '🗑️';
+            font-size: 1.8rem;
+        }
+
+        .section-description {
+            font-size: 14px;
+            color: var(--text-secondary);
+            margin-bottom: 1.5rem;
+            line-height: 1.7;
+        }
+
+        .info-notice {
+            background: linear-gradient(135deg, rgba(255, 193, 7, 0.12) 0%, rgba(255, 179, 0, 0.18) 100%);
+            border-left: 4px solid var(--primary-yellow);
+            padding: 1.3rem;
+            border-radius: 10px;
+            margin-bottom: 1.5rem;
+            font-size: 14px;
+            color: var(--text-primary);
+            line-height: 1.7;
+            box-shadow: 0 2px 8px rgba(255, 193, 7, 0.1);
+        }
+
+        .info-notice strong {
+            color: var(--primary-yellow);
+            font-weight: 700;
+        }
+
+        .delete-uid-form {
+            display: flex;
+            gap: 1rem;
+            max-width: 600px;
+        }
+
+        .delete-uid-form input {
+            flex: 1;
+            padding: 1.2rem;
+            border: 2px solid var(--border);
+            border-radius: 10px;
+            font-size: 15px;
+            transition: all var(--transition-base);
+        }
+
+        .delete-uid-form input:focus {
+            border-color: var(--primary-yellow);
+            box-shadow: 0 0 0 4px rgba(255, 193, 7, 0.15);
+        }
+
+        .delete-uid-form button {
+            background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+            color: var(--text-white);
+            border: none;
+            padding: 1.2rem 2.5rem;
+            border-radius: 10px;
+            font-weight: 700;
+            cursor: pointer;
+            font-size: 15px;
+            transition: all var(--transition-base);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            box-shadow: 0 4px 15px rgba(220, 38, 38, 0.25);
+        }
+
+        .delete-uid-form button:hover:not(:disabled) {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 25px rgba(220, 38, 38, 0.4);
+        }
+
+        .delete-uid-form button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        @media (max-width: 768px) {
+            .dashboard-container {
+                padding: 1rem;
+                margin-top: 0;
+                width: 100%;
+                max-width: 100vw;
+                overflow-x: hidden;
+            }
+
+            .welcome-header {
+                padding: 1.5rem;
+                margin-bottom: 1.5rem;
+                border-radius: 12px;
+            }
+
+            .welcome-header-content {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .welcome-text h2 {
+                font-size: 1.4rem;
+            }
+
+            .credits-display {
+                padding: 1rem 1.5rem;
+                text-align: center;
+            }
+
+            .credits-display .credits-amount {
+                font-size: 1.8rem;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr;
+                gap: 1rem;
+            }
+
+            .stat-card {
+                padding: 1.5rem;
+            }
+
+            .stat-value {
+                font-size: 1.5rem;
+            }
+
+            .action-buttons {
+                grid-template-columns: 1fr;
+            }
+
+            .action-btn {
+                padding: 1rem 1.5rem;
+                font-size: 14px;
+            }
+
+            .delete-uid-form {
+                flex-direction: column;
+                width: 100%;
+            }
+
+            .actions-section,
+            .uid-management {
+                padding: 1.5rem;
+                border-radius: 12px;
+            }
+
+            .actions-section h3,
+            .uid-management h3 {
+                font-size: 1.3rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .dashboard-container {
+                padding: 0.75rem;
+            }
+
+            .welcome-header {
+                padding: 1rem;
+                border-radius: 12px;
+            }
+
+            .welcome-text h2 {
+                font-size: 1.2rem;
+            }
+
+            .welcome-text p {
+                font-size: 13px;
+            }
+
+            .credits-display {
+                padding: 0.8rem 1rem;
+            }
+
+            .credits-display .credits-amount {
+                font-size: 1.5rem;
+            }
+
+            .stat-card {
+                padding: 1rem;
+            }
+
+            .stat-icon {
+                width: 40px;
+                height: 40px;
+                font-size: 20px;
+            }
+
+            .stat-value {
+                font-size: 1.3rem;
+            }
+
+            .action-btn {
+                padding: 0.9rem 1.2rem;
+                font-size: 13px;
+            }
+
+            .actions-section,
+            .uid-management {
+                padding: 1rem;
+                border-radius: 12px;
+            }
+
+            .delete-uid-form input {
+                padding: 0.9rem;
+                font-size: 14px;
+            }
+
+            .delete-uid-form button {
+                padding: 0.9rem 1.5rem;
+                font-size: 14px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <nav>
+        <a href="/dashboard" class="nav-brand">
+            <img src="/images/logo.webp" alt="UID Manager Logo" class="nav-logo">
+            <h1>UID Manager</h1>
+        </a>
+        <button class="mobile-menu-toggle">
+            <span></span>
+            <span></span>
+            <span></span>
+        </button>
+        <div class="nav-links">
+            <a href="/dashboard">Dashboard</a>
+            <a href="/packages">Packages</a>
+            <a href="/admin" id="adminLink" style="display:none;">Admin</a>
+            <a href="/buy-credits">Buy Credits</a>
+            <a href="/invoices">Invoices</a>
+            <a href="/settings">Settings</a>
+            <a href="/security">Security</a>
+            <button id="themeToggle" onclick="toggleTheme()" aria-label="Toggle theme">🌙</button>
+            <button onclick="logout()">Logout</button>
+        </div>
+    </nav>
+
+    <div class="dashboard-container">
+        <div class="welcome-header">
+            <div class="welcome-header-content">
+                <div class="welcome-text">
+                    <h2>Welcome back, <span id="username">User</span>! 👋</h2>
+                    <p>Manage your UIDs and monitor your account activity</p>
+                </div>
+                <div class="credits-display">
+                    <div class="credits-label">Available Credits</div>
+                    <div class="credits-amount" id="credits">0</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-icon">👤</div>
+                <div class="stat-label">Account Type</div>
+                <div class="stat-value" id="accountType">User</div>
+                <div class="stat-description">Current permission level</div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-icon">💰</div>
+                <div class="stat-label">Credit Balance</div>
+                <div class="stat-value" id="creditCount">0</div>
+                <div class="stat-description">Available for UID creation</div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-icon">✅</div>
+                <div class="stat-label">Account Status</div>
+                <div class="stat-value">Active</div>
+                <div class="stat-description">All systems operational</div>
+            </div>
+        </div>
+
+        <div class="actions-section">
+            <h3>Quick Actions</h3>
+            <div class="action-buttons">
+                <a href="/packages" class="action-btn">
+                    ➕ Create New UID
+                </a>
+                <a href="/packages" class="action-btn secondary">
+                    📦 View All Packages
+                </a>
+                <a href="/security" class="action-btn secondary">
+                    🔒 Security Settings
+                </a>
+            </div>
+        </div>
+
+        <div class="uid-management">
+            <h3>UID Management</h3>
+            <p class="section-description">
+                Delete a UID from the system. You can only delete UIDs that you created. This action cannot be undone and requires Two-Factor Authentication.
+            </p>
+            <div class="info-notice">
+                <strong>⚠️ Requirements:</strong> Two-Factor Authentication must be enabled to delete UIDs. You can only delete UIDs created by your account. This action is permanent and cannot be reversed.
+            </div>
+            <form class="delete-uid-form" id="deleteUidForm">
+                <input type="text" id="deleteUid" placeholder="Enter UID to delete" required pattern="[0-9]+"
+                    title="UID must contain only numbers">
+                <button type="submit" id="deleteBtn">🗑️ Delete UID</button>
+            </form>
+            <div id="deleteMessage"></div>
+        </div>
+    </div>
+
+    <script src="/js/theme.js"></script>
+    <script src="/js/navigation.js"></script>
+    <script src="/js/main.js"></script>
+    <script src="/js/notifications.js"></script>
+    <script>
+        async function loadDashboard() {
+            const user = await fetchUser();
+            if (user) {
+                document.getElementById('username').textContent = user.username;
+
+                const credits = user.credits || 0;
+                document.getElementById('credits').textContent = credits;
+                document.getElementById('creditCount').textContent = credits;
+
+                // Determine account type based on role hierarchy
+                let accountType = 'User';
+                if (user.isSuperAdmin) {
+                    accountType = 'Super Administrator';
+                } else if (user.isOwner) {
+                    accountType = 'Owner';
+                } else if (user.isLimitedAdmin) {
+                    accountType = 'Limited Admin';
+                } else if (user.isAdmin) {
+                    accountType = 'Administrator';
+                } else if (user.isGuest) {
+                    accountType = 'Guest';
+                }
+                document.getElementById('accountType').textContent = accountType;
+
+                // Show admin link for Admin, Super Admin, Owner, and Limited Admin
+                if (user.isAdmin || user.isSuperAdmin || user.isOwner || user.isLimitedAdmin) {
+                    document.getElementById('adminLink').style.display = 'block';
+                }
+            }
+        }
+
+        // Delete UID functionality with toast notifications
+        document.getElementById('deleteUidForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const uid = document.getElementById('deleteUid').value.trim();
+            const deleteBtn = document.getElementById('deleteBtn');
+
+            if (!/^[0-9]+$/.test(uid)) {
+                toast.error('UID must contain only numbers');
+                return;
+            }
+
+            if (!confirm(`Delete UID ${uid}?\n\nYou can only delete UIDs you created.\n\nThis action cannot be undone.`)) {
+                return;
+            }
+
+            deleteBtn.disabled = true;
+            deleteBtn.textContent = '⏳ Deleting...';
+
+            try {
+                const response = await fetch('/api/delete-uid', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ uid }),
+                    credentials: 'include'
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    toast.success(`UID ${uid} deleted successfully!`);
+                    document.getElementById('deleteUidForm').reset();
+                } else {
+                    if (data.requires2FA) {
+                        toast.warning('Enable 2FA in Security settings to delete UIDs');
+                    } else if (data.ownership === false) {
+                        toast.error('You can only delete UIDs you created');
+                    } else {
+                        toast.error(data.error || 'Failed to delete UID');
+                    }
+                }
+            } catch (error) {
+                toast.error('Connection error. Please try again.');
+            } finally {
+                deleteBtn.disabled = false;
+                deleteBtn.textContent = '🗑️ Delete UID';
+            }
+        });
+
+        loadDashboard();
+    </script>
+
+</body>
+
+</html>

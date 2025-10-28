@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Settings - UID Manager</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <style>
+        .container {
+            max-width: 1200px;
+            margin: 2rem auto;
+            padding: 0 1.5rem;
+        }
+
+        .settings-tabs {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 2rem;
+            border-bottom: 1px solid #e0e0e0;
+            padding-bottom: 0;
+            overflow-x: auto;
+        }
+
+        .tab-btn {
+            padding: 0.8rem 1.5rem;
+            background: transparent;
+            border: none;
+            border-bottom: 1px solid transparent;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            color: #666;
+            transition: all 0.2s;
+        }
+
+        .tab-btn:hover {
+            color: #1a1a1a;
+        }
+
+        .tab-btn.active {
+            color: #1a1a1a;
+            border-bottom-color: #FFC107;
+            border-bottom-width: 2px;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .activity-item {
+            padding: 1rem;
+            background: var(--surface-alt);
+            border-radius: 4px;
+            margin-bottom: 0.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 13px;
+            border: 1px solid var(--border);
+        }
+
+        .activity-time {
+            color: var(--text-secondary);
+            font-size: 12px;
+        }
+
+        .activity-type {
+            display: inline-block;
+            padding: 0.2rem 0.6rem;
+            background: var(--text-primary);
+            color: var(--text-inverse);
+            border-radius: 3px;
+            font-size: 11px;
+            font-weight: 500;
+        }
+
+        .activity-type.login {
+            background: #0d7a41;
+        }
+
+        .activity-type.uid-create {
+            background: #1a73e8;
+        }
+
+        .activity-type.credit {
+            background: #f59e0b;
+        }
+
+        .api-config-section {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .api-config-section h4 {
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 1rem;
+        }
+
+        .input-group {
+            margin-bottom: 1rem;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 0.4rem;
+            font-size: 12px;
+            font-weight: 500;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+        }
+
+        .input-with-reveal {
+            position: relative;
+        }
+
+        .reveal-btn {
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            cursor: pointer;
+            font-size: 12px;
+        }
+
+        .warning-box {
+            background: #fff3cd;
+            border: 1px solid #ffc107;
+            padding: 1rem;
+            border-radius: 4px;
+            margin-bottom: 1rem;
+            font-size: 12px;
+            color: #856404;
+        }
+    </style>
+</head>
+
+<body>
+    <nav>
+        <a href="/dashboard" class="nav-brand">
+            <img src="/images/logo.webp" alt="UID Manager Logo" class="nav-logo">
+            <h1>UID Manager</h1>
+        </a>
+        <button class="mobile-menu-toggle">
+            <span></span>
+            <span></span>
+            <span></span>
+        </button>
+        <div class="nav-links">
+            <a href="/dashboard">Dashboard</a>
+            <a href="/packages">Packages</a>
+            <a href="/admin" id="adminLink" style="display:none;">Admin</a>
+            <a href="/buy-credits">Buy Credits</a>
+            <a href="/invoices">Invoices</a>
+            <a href="/settings">Settings</a>
+            <a href="/security">Security</a>
+            <button id="themeToggle" onclick="toggleTheme()" aria-label="Toggle theme">🌙</button>
+            <button onclick="logout()">Logout</button>
+        </div>
+    </nav>
+
+    <script src="/js/notifications.js"></script>
+
+    <div class="container">
+        <div class="header">
+            <h2>Account Settings</h2>
+        </div>
+
+        <div class="settings-tabs">
+            <button class="tab-btn active" onclick="switchTab('activity')">Activity</button>
+            <button class="tab-btn" onclick="switchTab('login-history')">Login History</button>
+            <button class="tab-btn" id="apiConfigTab" onclick="switchTab('api-config')" style="display:none;">API
+                Configuration</button>
+            <button class="tab-btn" onclick="switchTab('account')">Account</button>
+        </div>
+
+        <!-- Activity Tab -->
+        <div id="activity-tab" class="tab-content active">
+            <div class="admin-section">
+                <h3>Recent Activity</h3>
+                <p class="section-description">Your recent actions and events</p>
+                <div id="activityList">
+                    <div class="empty-state">Loading activity...</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Login History Tab -->
+        <div id="login-history-tab" class="tab-content">
+            <div class="admin-section">
+                <h3>Login History</h3>
+                <p class="section-description">Track of all login sessions</p>
+                <div id="loginHistoryList">
+                    <div class="empty-state">Loading login history...</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- API Configuration Tab (Admin Only) -->
+        <div id="api-config-tab" class="tab-content">
+            <div class="warning-box">
+                <strong>Warning:</strong> Changing these settings will affect all UID creation operations. Only modify
+                if you know what you're doing.
+            </div>
+
+            <div class="api-config-section">
+                <h4>API Endpoint Configuration</h4>
+                <form id="apiConfigForm">
+                    <div class="input-group">
+                        <label for="baseUrl">Base URL</label>
+                        <input type="url" id="baseUrl" placeholder="https://api.example.com/endpoint" required>
+                    </div>
+
+                    <div class="input-group">
+                        <label for="apiKey">API Key</label>
+                        <div class="input-with-reveal">
+                            <input type="password" id="apiKey" placeholder="Enter API Key" required>
+                            <button type="button" class="reveal-btn" onclick="toggleApiKeyVisibility()">
+                                Show
+                            </button>
+                        </div>
+                    </div>
+
+                    <button type="submit" id="saveApiBtn">Save Configuration</button>
+                </form>
+                <div id="apiConfigMessage"></div>
+            </div>
+
+            <div class="api-config-section">
+                <h4>Current Configuration</h4>
+                <div class="input-group">
+                    <label>Base URL</label>
+                    <input type="text" id="currentBaseUrl" readonly>
+                </div>
+                <div class="input-group">
+                    <label>API Key</label>
+                    <input type="password" id="currentApiKey" readonly>
+                </div>
+            </div>
+        </div>
+
+        <!-- Account Tab -->
+        <div id="account-tab" class="tab-content">
+            <div class="admin-section">
+                <h3>Change Password</h3>
+                <form id="changePasswordForm">
+                    <div class="input-group">
+                        <label for="currentPassword">Current Password</label>
+                        <input type="password" id="currentPassword" required>
+                    </div>
+                    <div class="input-group">
+                        <label for="newPassword">New Password</label>
+                        <input type="password" id="newPassword" minlength="6" required>
+                    </div>
+                    <div class="input-group">
+                        <label for="confirmPassword">Confirm New Password</label>
+                        <input type="password" id="confirmPassword" minlength="6" required>
+                    </div>
+                    <button type="submit" id="changePasswordBtn">Change Password</button>
+                </form>
+                <div id="passwordMessage"></div>
+            </div>
+
+            <div class="admin-section">
+                <h3>Account Information</h3>
+                <div class="user-item">
+                    <span>Username</span>
+                    <span id="accountUsername">-</span>
+                </div>
+                <div class="user-item">
+                    <span>Account Type</span>
+                    <span id="accountType">-</span>
+                </div>
+                <div class="user-item">
+                    <span>Credits</span>
+                    <span id="accountCredits">-</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="/js/theme.js"></script>
+    <script src="/js/navigation.js"></script>
+    <script src="/js/main.js"></script>
+    <script src="/js/settings.js"></script>
+    <script>
+        // Show admin link and API config tab for all admin roles
+        async function initSettingsPage() {
+            try {
+                const response = await fetch('/api/user', { credentials: 'include' });
+                const user = await response.json();
+
+                // Show admin link for all admin roles
+                if (user.isAdmin || user.isSuperAdmin || user.isOwner || user.isLimitedAdmin) {
+                    document.getElementById('adminLink').style.display = 'block';
+                }
+
+                // Show API config tab only for Super Admin (not for Owner)
+                if (user.isSuperAdmin || user.username === 'admin') {
+                    document.getElementById('apiConfigTab').style.display = 'block';
+                }
+
+                // Set account information
+                document.getElementById('accountUsername').textContent = user.username;
+                document.getElementById('accountCredits').textContent = user.credits;
+
+                let accountType = 'User';
+                if (user.isSuperAdmin) {
+                    accountType = 'Super Administrator';
+                } else if (user.isOwner) {
+                    accountType = 'Owner';
+                } else if (user.isLimitedAdmin) {
+                    accountType = 'Limited Admin';
+                } else if (user.isAdmin) {
+                    accountType = 'Administrator';
+                } else if (user.isGuest) {
+                    accountType = 'Guest';
+                }
+                document.getElementById('accountType').textContent = accountType;
+
+            } catch (error) {
+                console.error('Failed to load user info:', error);
+            }
+        }
+
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', initSettingsPage);
+    </script>
+</body>
+
+</html>

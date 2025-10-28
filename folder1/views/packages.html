@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Packages - UID Manager</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <style>
+        .container {
+            max-width: 1200px;
+            margin: 2rem auto;
+            padding: 0 1.5rem;
+        }
+
+        .packages-title {
+            font-size: 2rem;
+            font-weight: 700;
+        }
+
+        .create-uid-section {
+            margin-top: 3rem;
+            background: var(--surface);
+            padding: 2rem;
+            border-radius: 16px;
+            border: 2px solid var(--border);
+            box-shadow: var(--shadow-sm);
+            transition: all var(--transition-smooth);
+        }
+
+        .create-uid-section:hover {
+            box-shadow: var(--shadow-md);
+            border-color: var(--primary-yellow);
+        }
+
+        .create-uid-section h3 {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 1.5rem;
+        }
+
+        .form-actions {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .btn-primary {
+            flex: 1;
+            padding: 1rem;
+            background: linear-gradient(135deg, var(--primary-yellow) 0%, var(--yellow-hover) 100%);
+            color: var(--black);
+            border: none;
+            border-radius: 10px;
+            font-weight: 700;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all var(--transition-base);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            transform: translateY(-3px);
+            box-shadow: var(--shadow-yellow);
+        }
+
+        .btn-primary:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+
+        .package-info {
+            background: linear-gradient(135deg, rgba(255, 193, 7, 0.05) 0%, rgba(255, 179, 0, 0.1) 100%);
+            padding: 1rem;
+            border-radius: 10px;
+            border: 1px solid var(--primary-yellow);
+            margin-bottom: 1rem;
+            font-size: 13px;
+            color: var(--text-primary);
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 0 1rem;
+            }
+
+            .header {
+                flex-direction: column;
+                gap: 1rem;
+                align-items: flex-start;
+            }
+
+            .packages-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .create-uid-section {
+                padding: 1.5rem;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <nav>
+        <a href="/dashboard" class="nav-brand">
+            <img src="/images/logo.webp" alt="UID Manager Logo" class="nav-logo">
+            <h1>UID Manager</h1>
+        </a>
+        <button class="mobile-menu-toggle">
+            <span></span>
+            <span></span>
+            <span></span>
+        </button>
+        <div class="nav-links">
+            <a href="/dashboard">Dashboard</a>
+            <a href="/packages">Packages</a>
+            <a href="/admin" id="adminLink" style="display:none;">Admin</a>
+            <a href="/buy-credits">Buy Credits</a>
+            <a href="/invoices">Invoices</a>
+            <a href="/settings">Settings</a>
+            <a href="/security">Security</a>
+            <button id="themeToggle" onclick="toggleTheme()" aria-label="Toggle theme">🌙</button>
+            <button onclick="logout()">Logout</button>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="header">
+            <h2 class="packages-title">Duration Packages</h2>
+            <div class="credits-badge">
+                <span id="userCredits">0</span> Credits
+            </div>
+        </div>
+
+        <div class="package-info">
+            Select a package below based on how long you need the UID to remain active. Each package costs a different
+            number of credits.
+        </div>
+
+        <div id="packagesGrid" class="packages-grid"></div>
+
+        <div class="create-uid-section">
+            <h3>Create New UID</h3>
+            <form id="createUidForm">
+                <input type="text" id="uid" placeholder="Enter UID (e.g., 123456789)" required pattern="[0-9]+"
+                    title="UID must contain only numbers">
+                <select id="packageSelect" required>
+                    <option value="">Select Duration Package</option>
+                </select>
+                <div class="form-actions">
+                    <button type="submit" class="btn-primary" id="createBtn">
+                        Create UID
+                    </button>
+                </div>
+            </form>
+            <div id="message"></div>
+        </div>
+    </div>
+
+    <script src="/js/theme.js"></script>
+    <script src="/js/navigation.js"></script>
+    <script src="/js/main.js"></script>
+    <script src="/js/notifications.js"></script>
+    <script>
+        let packages = {};
+        let userCredits = 0;
+        const createBtn = document.getElementById('createBtn');
+
+        async function loadPackages() {
+            const user = await fetchUser();
+            if (!user) return;
+
+            userCredits = user.credits;
+            document.getElementById('userCredits').textContent = userCredits;
+
+            // Show admin link for all admin roles
+            if (user.isAdmin || user.isSuperAdmin || user.isOwner || user.isLimitedAdmin) {
+                document.getElementById('adminLink').style.display = 'block';
+            }
+
+            const response = await fetch('/api/packages', {
+                credentials: 'include'
+            });
+            packages = await response.json();
+
+            const grid = document.getElementById('packagesGrid');
+            const select = document.getElementById('packageSelect');
+
+            Object.entries(packages).forEach(([id, pkg]) => {
+                const card = document.createElement('div');
+                card.className = `package-card ${pkg.popular ? 'popular' : ''}`;
+
+                const canAfford = userCredits >= pkg.credits;
+
+                card.innerHTML = `
+                    ${pkg.popular ? '<div class="popular-badge">Popular</div>' : ''}
+                    <h3>${pkg.name}</h3>
+                    <div class="hours">${pkg.hours} Hours</div>
+                    <div class="price">$${pkg.price.toFixed(2)}</div>
+                    <div class="credits">${pkg.credits} Credits</div>
+                    <button onclick="selectPackage('${id}')" ${!canAfford ? 'disabled' : ''}>
+                        ${canAfford ? 'Select' : 'Insufficient Credits'}
+                    </button>
+                `;
+
+                grid.appendChild(card);
+
+                const option = document.createElement('option');
+                option.value = id;
+                option.textContent = `${pkg.name} (${pkg.hours}h) - ${pkg.credits} Credits`;
+                if (!canAfford) {
+                    option.disabled = true;
+                    option.textContent += ' [Not Enough Credits]';
+                }
+                select.appendChild(option);
+            });
+        }
+
+        function selectPackage(packageId) {
+            document.getElementById('packageSelect').value = packageId;
+            document.getElementById('uid').focus();
+            toast.info(`Selected ${packages[packageId].name} package`);
+        }
+
+        document.getElementById('createUidForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const uid = document.getElementById('uid').value.trim();
+            const packageId = document.getElementById('packageSelect').value;
+
+            if (!packageId) {
+                toast.error('Please select a duration package');
+                return;
+            }
+
+            if (!/^[0-9]+$/.test(uid)) {
+                toast.error('UID must contain only numbers');
+                return;
+            }
+
+            createBtn.disabled = true;
+            createBtn.textContent = 'Creating...';
+
+            try {
+                const response = await fetch('/api/create-uid', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ uid, packageId }),
+                    credentials: 'include'
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    toast.success(`UID ${data.uid} created successfully! Credits remaining: ${data.creditsRemaining}`);
+                    userCredits = data.creditsRemaining;
+                    document.getElementById('userCredits').textContent = userCredits;
+                    document.getElementById('createUidForm').reset();
+
+                    setTimeout(() => {
+                        location.reload();
+                    }, 2000);
+                } else {
+                    if (data.requires2FA) {
+                        toast.warning('Please enable 2FA in Security settings first');
+                    } else if (data.error && data.error.includes('Insufficient')) {
+                        toast.error(`Not enough credits! You have ${data.current}, but need ${data.required}`);
+                    } else if (data.error && data.error.includes('already exists')) {
+                        toast.error('This UID already exists');
+                    } else {
+                        toast.error(data.error || 'Failed to create UID');
+                    }
+                    createBtn.disabled = false;
+                    createBtn.textContent = 'Create UID';
+                }
+            } catch (error) {
+                toast.error('Connection error. Please try again.');
+                createBtn.disabled = false;
+                createBtn.textContent = 'Create UID';
+            }
+        });
+
+        function showMessage(text, type) {
+            const msg = document.getElementById('message');
+            msg.textContent = text;
+            msg.className = type;
+            msg.style.display = 'block';
+            setTimeout(() => {
+                msg.style.display = 'none';
+            }, 5000);
+        }
+
+        loadPackages();
+    </script>
+</body>
+
+</html>

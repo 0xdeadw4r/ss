@@ -1,0 +1,89 @@
+/* Admin Panel Theme Overrides using CSS Variables */
+
+.uid-list-section,
+.user-management-section,
+.restoration-section {
+    background: var(--surface);
+    border: 2px solid var(--border);
+    border-radius: 16px;
+    padding: 2rem;
+    margin-bottom: 2rem;
+    box-shadow: var(--shadow-sm);
+    transition: all var(--transition-smooth);
+}
+
+.uid-list-section:hover,
+.user-management-section:hover,
+.restoration-section:hover {
+    box-shadow: var(--shadow-md);
+    border-color: var(--primary-yellow);
+}
+
+.section-header {
+    border-bottom: 2px solid var(--primary-yellow);
+}
+
+.section-header h3 {
+    color: var(--text-primary);
+    font-weight: 700;
+}
+
+.stat-card {
+    background: linear-gradient(135deg, rgba(255, 193, 7, 0.05) 0%, rgba(255, 179, 0, 0.1) 100%);
+    border-left: 3px solid var(--primary-yellow);
+    border-radius: 10px;
+    transition: all var(--transition-base);
+}
+
+.stat-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+}
+
+.refresh-btn {
+    background: linear-gradient(135deg, var(--primary-yellow) 0%, var(--yellow-hover) 100%);
+    color: var(--black);
+    font-weight: 700;
+    border-radius: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.refresh-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-yellow);
+}
+
+.btn-pause {
+    background: linear-gradient(135deg, var(--primary-yellow) 0%, var(--yellow-hover) 100%);
+    color: var(--black);
+    font-weight: 700;
+}
+
+.btn-pause:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-yellow);
+}
+
+.data-table th {
+    background: linear-gradient(135deg, rgba(255, 193, 7, 0.1) 0%, rgba(255, 179, 0, 0.15) 100%);
+    border-bottom: 2px solid var(--primary-yellow);
+}
+
+.warning-box {
+    background: linear-gradient(135deg, rgba(255, 193, 7, 0.1) 0%, rgba(255, 179, 0, 0.15) 100%);
+    border-left: 4px solid var(--primary-yellow);
+    border-radius: 10px;
+}
+
+.success-box {
+    background: linear-gradient(135deg, #d4edda 0%, #c8e6c9 100%);
+    border-left: 4px solid #28a745;
+    border-radius: 10px;
+}
+
+.info-box {
+    background: linear-gradient(135deg, rgba(255, 193, 7, 0.05) 0%, rgba(255, 179, 0, 0.1) 100%);
+    border-left: 4px solid var(--primary-yellow);
+    border-radius: 10px;
+}

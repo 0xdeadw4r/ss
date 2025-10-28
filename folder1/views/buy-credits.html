@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Buy Credits - UID Manager</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <style>
+        .container {
+            max-width: 1200px;
+            margin: 2rem auto;
+            padding: 0 1.5rem;
+        }
+
+        .credit-packages {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin: 2rem 0;
+        }
+
+        .package-card {
+            background: var(--surface);
+            border: 2px solid var(--border);
+            border-radius: 8px;
+            padding: 2rem;
+            text-align: center;
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+
+        .package-card:hover {
+            border-color: var(--primary-yellow);
+            transform: translateY(-5px);
+            box-shadow: var(--shadow-yellow);
+        }
+
+        .package-card.popular {
+            border-color: #667eea;
+            position: relative;
+        }
+
+        .popular-badge {
+            position: absolute;
+            top: -12px;
+            right: 20px;
+            background: #667eea;
+            color: white;
+            padding: 0.3rem 1rem;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .package-credits {
+            font-size: 3rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin: 1rem 0;
+        }
+
+        .package-price {
+            font-size: 1.5rem;
+            color: var(--text-secondary);
+            margin-bottom: 0.5rem;
+        }
+
+        .package-savings {
+            color: #28a745;
+            font-weight: 600;
+            font-size: 14px;
+            margin-bottom: 1.5rem;
+        }
+
+        .buy-btn {
+            width: 100%;
+            padding: 1rem;
+            background: linear-gradient(135deg, var(--primary-yellow) 0%, var(--yellow-hover) 100%);
+            color: var(--text-inverse);
+            border: none;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+
+        .buy-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-yellow);
+        }
+
+        .buy-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .payment-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: var(--modal-overlay);
+            z-index: 1000;
+            overflow-y: auto;
+        }
+
+        .modal-content {
+            background: var(--surface);
+            max-width: 500px;
+            margin: 3% auto;
+            padding: 2rem;
+            border-radius: 10px;
+            box-shadow: var(--shadow-lg);
+        }
+
+        .modal-header {
+            text-align: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .modal-header h2 {
+            margin: 0 0 0.5rem 0;
+            font-size: 1.5rem;
+            color: var(--text-primary);
+        }
+
+        .payment-info {
+            background: var(--surface-alt);
+            padding: 1.5rem;
+            border-radius: 8px;
+            margin: 1rem 0;
+        }
+
+        .payment-amount {
+            text-align: center;
+            margin-bottom: 1rem;
+        }
+
+        .amount-label {
+            font-size: 13px;
+            color: var(--text-secondary);
+            margin-bottom: 0.5rem;
+        }
+
+        .amount-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        .address-section {
+            margin-top: 1.5rem;
+        }
+
+        .address-label {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 0.5rem;
+        }
+
+        .address-box {
+            background: var(--surface);
+            padding: 1rem;
+            border: 2px solid var(--border);
+            border-radius: 6px;
+            word-break: break-all;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            color: var(--text-primary);
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .address-box:hover {
+            border-color: var(--primary-yellow);
+            background: var(--surface-hover);
+        }
+
+        .warning-box {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 4px;
+        }
+
+        .warning-box strong {
+            color: #856404;
+            font-size: 14px;
+        }
+
+        .warning-box p {
+            margin: 0.5rem 0 0 0;
+            font-size: 13px;
+            color: #856404;
+        }
+
+        .status-info {
+            text-align: center;
+            padding: 1rem;
+            background: #e3f2fd;
+            border-radius: 6px;
+            margin-top: 1.5rem;
+        }
+
+        .status-info p {
+            margin: 0.5rem 0;
+            font-size: 13px;
+            color: #1565c0;
+        }
+
+        .close-btn {
+            width: 100%;
+            padding: 1rem;
+            background: var(--surface-hover);
+            color: var(--text-primary);
+            border: 2px solid var(--border);
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 1rem;
+            transition: all 0.3s;
+        }
+
+        .close-btn:hover {
+            background: var(--border);
+            border-color: var(--primary-yellow);
+        }
+
+        .copy-hint {
+            text-align: center;
+            font-size: 11px;
+            color: var(--text-tertiary);
+            margin-top: 0.5rem;
+        }
+    </style>
+</head>
+
+<body>
+    <nav>
+        <a href="/dashboard" class="nav-brand">
+            <img src="/images/logo.webp" alt="UID Manager Logo" class="nav-logo">
+            <h1>UID Manager</h1>
+        </a>
+        <button class="mobile-menu-toggle">
+            <span></span>
+            <span></span>
+            <span></span>
+        </button>
+        <div class="nav-links">
+            <a href="/dashboard">Dashboard</a>
+            <a href="/packages">Packages</a>
+            <a href="/admin" id="adminLink" style="display:none;">Admin</a>
+            <a href="/buy-credits">Buy Credits</a>
+            <a href="/invoices">Invoices</a>
+            <a href="/settings">Settings</a>
+            <a href="/security">Security</a>
+            <button id="themeToggle" onclick="toggleTheme()" aria-label="Toggle theme">🌙</button>
+            <button onclick="logout()">Logout</button>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="header">
+            <h2>Buy Credits</h2>
+            <div class="credits-badge">
+                <span id="userCredits">0</span> Credits
+            </div>
+        </div>
+
+        <div class="admin-section">
+            <h3>Credit Packages</h3>
+            <p class="section-description">Purchase credits to create UIDs. Pay securely with cryptocurrency (USDT).</p>
+        </div>
+
+        <div class="credit-packages">
+            <div class="package-card">
+                <h3>Starter</h3>
+                <div class="package-credits">15</div>
+                <div class="package-price">$15.00</div>
+                <button class="buy-btn" onclick="buyCredits(15, 15)">Buy Now</button>
+            </div>
+
+            <div class="package-card popular">
+                <span class="popular-badge">POPULAR</span>
+                <h3>Pro</h3>
+                <div class="package-credits">50</div>
+                <div class="package-price">$45.00</div>
+                <div class="package-savings">Save $5!</div>
+                <button class="buy-btn" onclick="buyCredits(50, 45)">Buy Now</button>
+            </div>
+
+            <div class="package-card">
+                <h3>Ultimate</h3>
+                <div class="package-credits">100</div>
+                <div class="package-price">$85.00</div>
+                <div class="package-savings">Save $15!</div>
+                <button class="buy-btn" onclick="buyCredits(100, 85)">Buy Now</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Payment Modal -->
+    <div id="paymentModal" class="payment-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Complete Your Payment</h2>
+                <p style="color: #666; font-size: 14px; margin: 0;">Pay with USDT (Tron Network)</p>
+            </div>
+
+            <div class="payment-info">
+                <div class="payment-amount">
+                    <div class="amount-label">Amount to Send:</div>
+                    <div class="amount-value" id="payAmount"></div>
+                </div>
+
+                <div class="address-section">
+                    <div class="address-label">Send to this address:</div>
+                    <div class="address-box" id="payAddress" onclick="copyAddress()"></div>
+                    <div class="copy-hint">Click to copy address</div>
+                </div>
+            </div>
+
+            <div class="warning-box">
+                <strong>⚠️ Important:</strong>
+                <p>Use USDT TRC20 (Tron network) ONLY! Sending other coins or using wrong network will result in loss of
+                    funds.</p>
+            </div>
+
+            <div class="status-info">
+                <p><strong>Checking payment status automatically...</strong></p>
+                <p>Credits will be added once payment is confirmed (usually 1-5 minutes)</p>
+            </div>
+
+            <button class="close-btn" onclick="closeModal()">Close</button>
+        </div>
+    </div>
+
+    <script src="/js/theme.js"></script>
+    <script src="/js/navigation.js"></script>
+    <script src="/js/main.js"></script>
+    <script src="/js/notifications.js"></script>
+    <script>
+        let checkInterval;
+        let currentPaymentId = null;
+
+        async function buyCredits(credits, price) {
+            try {
+                toast.info('Creating payment request...');
+
+                const response = await fetch('/api/payment/create', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ credits }),
+                    credentials: 'include'
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    // Show payment modal
+                    document.getElementById('paymentModal').style.display = 'block';
+                    document.getElementById('payAmount').textContent = `${data.payAmount} ${data.payCurrency}`;
+                    document.getElementById('payAddress').textContent = data.payAddress;
+
+                    currentPaymentId = data.paymentId;
+
+                    // Start checking payment status
+                    checkPaymentStatus(data.paymentId);
+
+                    toast.success('Payment request created! Send USDT to the address shown.');
+                } else {
+                    toast.error(data.error || 'Failed to create payment');
+                }
+            } catch (error) {
+                console.error('Payment error:', error);
+                toast.error('Failed to create payment. Please try again.');
+            }
+        }
+
+        function copyAddress() {
+            const address = document.getElementById('payAddress').textContent;
+            navigator.clipboard.writeText(address).then(() => {
+                toast.success('Address copied to clipboard!');
+            }).catch(() => {
+                toast.error('Failed to copy address');
+            });
+        }
+
+        function checkPaymentStatus(paymentId) {
+            let checkCount = 0;
+            const maxChecks = 120; // Check for 10 minutes (120 * 5 seconds)
+
+            checkInterval = setInterval(async () => {
+                try {
+                    checkCount++;
+
+                    const response = await fetch(`/api/payment/status/${paymentId}`, {
+                        credentials: 'include'
+                    });
+                    const data = await response.json();
+
+                    console.log('Payment status:', data.paymentStatus, 'Invoice status:', data.invoiceStatus);
+
+                    if (data.invoiceStatus === 'paid' || data.paymentStatus === 'finished') {
+                        clearInterval(checkInterval);
+                        closeModal();
+                        toast.success(`${data.credits} credits added successfully!`);
+                        setTimeout(() => location.reload(), 2000);
+                    } else if (data.paymentStatus === 'failed' || data.paymentStatus === 'expired') {
+                        clearInterval(checkInterval);
+                        closeModal();
+                        toast.error('Payment failed or expired. Please try again.');
+                    } else if (checkCount >= maxChecks) {
+                        clearInterval(checkInterval);
+                        toast.warning('Payment check timed out. Please check your credits later.');
+                    }
+                } catch (error) {
+                    console.error('Status check error:', error);
+                }
+            }, 5000); // Check every 5 seconds
+        }
+
+        function closeModal() {
+            document.getElementById('paymentModal').style.display = 'none';
+            if (checkInterval) {
+                clearInterval(checkInterval);
+            }
+            currentPaymentId = null;
+        }
+
+        async function loadCredits() {
+            const user = await fetchUser();
+            if (user) {
+                document.getElementById('userCredits').textContent = user.credits;
+                if (user.isAdmin || user.isOwner || user.isSuperAdmin || user.isLimitedAdmin) {
+                    document.getElementById('adminLink').style.display = 'block';
+                }
+            }
+        }
+
+        // Close modal on outside click
+        document.getElementById('paymentModal').addEventListener('click', function (e) {
+            if (e.target === this) {
+                closeModal();
+            }
+        });
+
+        loadCredits();
+    </script>
+</body>
+
+</html>

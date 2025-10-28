@@ -1,0 +1,1482 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Admin Panel - UID Manager</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="/css/admin-theme.css">
+    <style>
+        /* Layout Styles */
+        .uid-list-section,
+        .user-management-section,
+        .restoration-section {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+            border-bottom: 2px solid var(--border);
+            padding-bottom: 1rem;
+        }
+
+        .section-header h3 {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin: 0;
+        }
+
+        /* Stats Cards */
+        .uid-stats,
+        .restoration-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .stat-card {
+            background: var(--surface-alt);
+            padding: 1rem;
+            border-radius: 4px;
+            text-align: center;
+            border-left: 3px solid var(--text-primary);
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        /* Tables */
+        .table-wrapper {
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            margin-top: 1rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 600px;
+        }
+
+        .data-table th,
+        .data-table td {
+            padding: 0.8rem;
+            text-align: left;
+            border-bottom: 1px solid var(--border);
+            white-space: nowrap;
+            color: var(--text-primary);
+        }
+
+        .data-table th {
+            background: var(--surface-alt);
+            font-weight: 600;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        .data-table td {
+            font-size: 13px;
+        }
+
+        /* Status Badges */
+        .status-badge {
+            display: inline-block;
+            padding: 0.3rem 0.8rem;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+
+        .status-active {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .status-paused {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .status-expired {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        [data-theme="dark"] .status-active {
+            background: rgba(40, 167, 69, 0.2);
+            color: #69db7c;
+        }
+
+        [data-theme="dark"] .status-paused {
+            background: rgba(255, 193, 7, 0.2);
+            color: #FFD43B;
+        }
+
+        [data-theme="dark"] .status-expired {
+            background: rgba(220, 53, 69, 0.2);
+            color: #ff6b6b;
+        }
+
+        .guest-badge {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 0.2rem 0.5rem;
+            border-radius: 10px;
+            font-size: 10px;
+            font-weight: 600;
+            margin-left: 0.5rem;
+            text-transform: uppercase;
+        }
+
+        /* Buttons */
+        .refresh-btn {
+            background: linear-gradient(135deg, var(--primary-yellow) 0%, var(--yellow-hover) 100%);
+            color: var(--text-inverse);
+            border: none;
+            padding: 0.6rem 1.2rem;
+            border-radius: 4px;
+            font-weight: 500;
+            cursor: pointer;
+            font-size: 13px;
+            transition: all 0.2s;
+        }
+
+        .refresh-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-yellow);
+        }
+
+        .action-btn {
+            padding: 0.4rem 0.8rem;
+            margin-right: 0.5rem;
+            margin-bottom: 0.3rem;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 500;
+            transition: all 0.2s;
+            display: inline-block;
+        }
+
+        .btn-pause {
+            background: #ffc107;
+            color: #000;
+        }
+
+        .btn-pause:hover {
+            background: #ffb300;
+        }
+
+        .btn-resume {
+            background: #28a745;
+            color: #fff;
+        }
+
+        .btn-resume:hover {
+            background: #218838;
+        }
+
+        .btn-delete {
+            background: #dc3545;
+            color: #fff;
+        }
+
+        .btn-delete:hover {
+            background: #c82333;
+        }
+
+        .btn-bulk-delete {
+            background: #6c757d;
+            color: #fff;
+        }
+
+        .btn-bulk-delete:hover {
+            background: #5a6268;
+        }
+
+        .btn-upgrade {
+            background: #17a2b8;
+            color: #fff;
+        }
+
+        .btn-upgrade:hover {
+            background: #138496;
+        }
+
+        .btn-reset {
+            background: #17a2b8;
+            color: #fff;
+        }
+
+        [data-theme="dark"] .btn-upgrade,
+        [data-theme="dark"] .btn-reset {
+            background: rgba(23, 162, 184, 0.8);
+        }
+
+        [data-theme="dark"] .btn-upgrade:hover,
+        [data-theme="dark"] .btn-reset:hover {
+            background: #17a2b8;
+        }
+
+        .btn-reset:hover {
+            background: #138496;
+        }
+
+        .btn-restore {
+            background: #28a745;
+            color: #fff;
+            font-size: 14px;
+            padding: 0.8rem 1.5rem;
+        }
+
+        .btn-restore:hover {
+            background: #218838;
+        }
+
+        /* Utility */
+        .loading-spinner {
+            text-align: center;
+            padding: 2rem;
+            color: var(--text-secondary);
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 2rem;
+            color: var(--text-tertiary);
+        }
+
+        .warning-box {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            border-radius: 4px;
+            color: #856404;
+        }
+
+        .success-box {
+            background: #d4edda;
+            border-left: 4px solid #28a745;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            border-radius: 4px;
+            color: #155724;
+        }
+
+        .info-box {
+            background: #d1ecf1;
+            border-left: 4px solid #17a2b8;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            border-radius: 4px;
+            color: #0c5460;
+        }
+
+        [data-theme="dark"] .warning-box {
+            background: rgba(255, 193, 7, 0.15);
+            color: #FFD43B;
+            border-left-color: #FFD43B;
+        }
+
+        [data-theme="dark"] .success-box {
+            background: rgba(40, 167, 69, 0.15);
+            color: #69db7c;
+            border-left-color: #69db7c;
+        }
+
+        [data-theme="dark"] .info-box {
+            background: rgba(23, 162, 184, 0.15);
+            color: #22b8cf;
+            border-left-color: #22b8cf;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            body {
+                overflow-x: hidden;
+            }
+
+            .container {
+                padding: 0 0.75rem;
+                margin: 1rem auto;
+                max-width: 100%;
+                overflow-x: hidden;
+            }
+
+            .header {
+                padding: 1rem;
+                margin-bottom: 1.5rem;
+            }
+
+            .header h2 {
+                font-size: 1.3rem;
+            }
+
+            .uid-list-section,
+            .user-management-section,
+            .restoration-section {
+                padding: 1rem;
+                border-radius: 12px;
+                margin-bottom: 1.5rem;
+                overflow-x: hidden;
+            }
+
+            .section-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 0.75rem;
+            }
+
+            .section-header h3 {
+                font-size: 1rem;
+            }
+
+            .uid-stats,
+            .restoration-stats {
+                grid-template-columns: 1fr;
+                gap: 0.75rem;
+            }
+
+            .stat-card {
+                padding: 0.75rem;
+            }
+
+            .stat-value {
+                font-size: 1.3rem;
+            }
+
+            .table-wrapper {
+                margin: 0.75rem -1rem;
+                border-radius: 0;
+                box-shadow: none;
+            }
+
+            .data-table {
+                min-width: 500px;
+                font-size: 11px;
+            }
+
+            .data-table th,
+            .data-table td {
+                padding: 0.5rem 0.4rem;
+                font-size: 11px;
+            }
+
+            .data-table th {
+                font-size: 10px;
+            }
+
+            .action-btn {
+                display: block;
+                width: 100%;
+                margin-bottom: 0.4rem;
+                margin-right: 0;
+                font-size: 11px;
+                padding: 0.5rem;
+            }
+
+            .refresh-btn {
+                width: 100%;
+                font-size: 12px;
+                padding: 0.7rem 1rem;
+            }
+
+            .status-badge {
+                font-size: 9px;
+                padding: 0.25rem 0.5rem;
+            }
+
+            .guest-badge {
+                font-size: 8px;
+                padding: 0.15rem 0.4rem;
+            }
+
+            .btn-restore {
+                width: 100%;
+                font-size: 13px;
+                padding: 0.9rem 1rem;
+            }
+
+            .warning-box,
+            .success-box,
+            .info-box {
+                padding: 0.75rem;
+                font-size: 12px;
+            }
+
+            .form-group label {
+                font-size: 11px;
+            }
+
+            .form-group input,
+            .form-group select {
+                font-size: 13px;
+            }
+
+            .form-group small {
+                font-size: 10px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .container {
+                padding: 0 0.5rem;
+            }
+
+            .header {
+                padding: 0.75rem;
+            }
+
+            .header h2 {
+                font-size: 1.1rem;
+            }
+
+            .uid-list-section,
+            .user-management-section,
+            .restoration-section {
+                padding: 0.75rem;
+            }
+
+            .section-header h3 {
+                font-size: 0.95rem;
+            }
+
+            .data-table {
+                min-width: 450px;
+            }
+
+            .stat-card {
+                padding: 0.6rem;
+            }
+
+            .stat-label {
+                font-size: 10px;
+            }
+
+            .stat-value {
+                font-size: 1.2rem;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <nav>
+        <a href="/dashboard" class="nav-brand">
+            <img src="/images/logo.webp" alt="UID Manager Logo" class="nav-logo">
+            <h1>UID Manager</h1>
+        </a>
+        <button class="mobile-menu-toggle">
+            <span></span>
+            <span></span>
+            <span></span>
+        </button>
+        <div class="nav-links">
+            <a href="/dashboard">Dashboard</a>
+            <a href="/packages">Packages</a>
+            <a href="/admin" id="adminLink" style="display:none;">Admin</a>
+            <a href="/buy-credits">Buy Credits</a>
+            <a href="/invoices">Invoices</a>
+            <a href="/settings">Settings</a>
+            <a href="/security">Security</a>
+            <button id="themeToggle" onclick="toggleTheme()" aria-label="Toggle theme">🌙</button>
+            <button onclick="logout()">Logout</button>
+        </div>
+    </nav>
+
+
+    <div class="container">
+        <div class="header">
+            <h2>Admin Panel</h2>
+        </div>
+
+        <!-- Member Restoration Section -->
+        <div class="restoration-section" id="restorationSection">
+            <div class="section-header">
+                <h3>Member Restoration System</h3>
+                <button onclick="loadRestorationStats()" class="refresh-btn">Refresh Stats</button>
+            </div>
+
+            <div class="info-box">
+                <strong>Server Recovery Tool:</strong> Restore all Discord-verified members to a new server if your
+                server gets deleted.
+            </div>
+
+            <div class="restoration-stats" id="restorationStats">
+                <div class="stat-card">
+                    <div class="stat-label">Discord Users</div>
+                    <div class="stat-value" id="totalDiscordUsers">-</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">With Valid Tokens</div>
+                    <div class="stat-value" id="validTokenUsers">-</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Restorable Members</div>
+                    <div class="stat-value" id="restorableUsers">-</div>
+                </div>
+            </div>
+
+            <form id="restoreForm">
+                <div class="form-group">
+                    <label>New Server ID</label>
+                    <input type="text" id="newGuildId" placeholder="Enter Discord Server ID" required>
+                    <small>Right-click your new server → Copy ID (Developer Mode must be enabled)</small>
+                </div>
+                <div class="form-group">
+                    <label>Bot Token</label>
+                    <input type="password" id="botToken" placeholder="Enter Discord Bot Token" required>
+                    <small>Your bot must be added to the new server first</small>
+                </div>
+                <button type="submit" class="btn-restore" id="restoreBtn">Start Member Restoration</button>
+            </form>
+
+            <div id="restoreResults" style="display: none; margin-top: 1.5rem;">
+                <h4>Restoration Results</h4>
+                <div id="restoreStats"></div>
+                <div id="restoreErrors" style="margin-top: 1rem;"></div>
+            </div>
+        </div>
+
+        <!-- Guest Users Section -->
+        <div class="user-management-section">
+            <div class="section-header">
+                <h3>Guest Users Management</h3>
+                <button onclick="loadGuests()" class="refresh-btn">Refresh Guests</button>
+            </div>
+            <div id="guestsContainer">
+                <div class="empty-state">Click "Refresh Guests" to load guest users</div>
+            </div>
+        </div>
+
+        <!-- User Management Section -->
+        <div class="user-management-section">
+            <div class="section-header">
+                <h3>User Management</h3>
+                <button onclick="loadUsersManagement()" class="refresh-btn">Refresh Users</button>
+            </div>
+            <div id="usersManagementContainer">
+                <div class="empty-state">Click "Refresh Users" to load all users</div>
+            </div>
+        </div>
+
+        <!-- IP Management Section -->
+        <div class="user-management-section">
+            <div class="section-header">
+                <h3>IP Address Management</h3>
+                <button onclick="loadUserIPs()" class="refresh-btn">Refresh IPs</button>
+            </div>
+            <div id="ipManagementContainer">
+                <div class="empty-state">Click "Refresh IPs" to load IP addresses</div>
+            </div>
+        </div>
+
+        <!-- Network Security Section -->
+        <div class="user-management-section">
+            <div class="section-header">
+                <h3>Network Security Management</h3>
+                <button onclick="loadNetworkFingerprints()" class="refresh-btn">Refresh Network Locks</button>
+            </div>
+            <div id="networkContainer">
+                <div class="empty-state">Click "Refresh Network Locks" to load security data</div>
+            </div>
+        </div>
+
+        <!-- UID Management Section -->
+        <div class="uid-list-section">
+            <div class="section-header">
+                <h3>UID Management</h3>
+                <button onclick="loadUids()" class="refresh-btn">Refresh UIDs</button>
+            </div>
+
+            <div class="uid-stats">
+                <div class="stat-card">
+                    <div class="stat-label">Total UIDs</div>
+                    <div class="stat-value" id="totalUids">0</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Active UIDs</div>
+                    <div class="stat-value" id="activeUids">0</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Expired UIDs</div>
+                    <div class="stat-value" id="expiredUids">0</div>
+                </div>
+            </div>
+
+            <div id="uidListContainer">
+                <div class="empty-state">Click "Refresh UIDs" to load all UIDs</div>
+            </div>
+        </div>
+
+        <!-- Create Account Section -->
+        <div class="admin-section">
+            <h3>Create User Account</h3>
+            <p class="section-description">Create a new user account with customizable settings</p>
+            <form id="createAccountForm">
+                <input type="text" id="newUsername" placeholder="Username" required>
+                <input type="password" id="newPassword" placeholder="Password" minlength="6" required>
+                <label style="display: flex; align-items: center; margin: 1rem 0;">
+                    <input type="checkbox" id="makeAdmin" style="width: auto; margin-right: 0.5rem;">
+                    <span>Make Administrator</span>
+                </label>
+                <label style="display: flex; align-items: center; margin: 1rem 0;">
+                    <input type="checkbox" id="makeGuest" style="width: auto; margin-right: 0.5rem;">
+                    <span>Create as Guest (Free Pass)</span>
+                </label>
+                <button type="submit" id="createAccountBtn">Create Account</button>
+            </form>
+        </div>
+        <!-- Create Owner Account Section (Super Admin Only) -->
+        <div class="admin-section" id="createOwnerSection">
+            <h3>Create Owner Account</h3>
+            <p class="section-description">Owner can manage users but cannot see restoration features or admin accounts
+            </p>
+            <form id="createOwnerForm">
+                <input type="text" id="ownerUsername" placeholder="Owner Username" required>
+                <input type="password" id="ownerPassword" placeholder="Password" minlength="6" required>
+                <button type="submit" id="createOwnerBtn" class="btn-reset">Create Owner</button>
+            </form>
+        </div>
+
+        <!-- Credit Management Section -->
+        <div class="admin-section">
+            <h3>Credit Management</h3>
+            <p class="section-description">Add credits to user accounts</p>
+            <form id="creditForm">
+                <input type="text" id="creditUsername" placeholder="Username" required>
+                <input type="number" id="creditAmount" placeholder="Credits Amount" min="1" required>
+                <button type="submit" id="creditBtn">Add Credits</button>
+            </form>
+        </div>
+
+        <!-- User List Section -->
+        <div class="admin-section">
+            <h3>All Users Summary</h3>
+            <div id="usersList">
+                <div class="empty-state">Loading users...</div>
+            </div>
+        </div>
+    </div>
+
+    <script src="/js/theme.js"></script>
+    <script src="/js/navigation.js"></script>
+    <script src="/js/main.js"></script>
+    <script src="/js/notifications.js"></script>
+    <script>
+        // Check user role and hide restoration section for Owners
+        async function checkUserRole() {
+            try {
+                const response = await fetch('/api/user', { credentials: 'include' });
+                const userData = await response.json();
+
+                // Hide restoration section if Owner (but not Super Admin)
+                if (userData.isOwner && !userData.isSuperAdmin) {
+                    const restorationSection = document.getElementById('restorationSection');
+                    if (restorationSection) {
+                        restorationSection.style.display = 'none';
+                    }
+                }
+            } catch (error) {
+                console.error('User check error:', error);
+            }
+        }
+
+        // Member Restoration Functions
+        async function loadRestorationStats() {
+            try {
+                const response = await fetch('/api/admin/restoration-stats', { credentials: 'include' });
+                const stats = await response.json();
+
+                if (stats) {
+                    document.getElementById('totalDiscordUsers').textContent = stats.totalDiscordUsers || 0;
+                    document.getElementById('validTokenUsers').textContent = stats.usersWithValidTokens || 0;
+                    document.getElementById('restorableUsers').textContent = stats.restorable || 0;
+                }
+            } catch (error) {
+                console.error('Load stats error:', error);
+            }
+        }
+
+        document.getElementById('restoreForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const newGuildId = document.getElementById('newGuildId').value.trim();
+            const botToken = document.getElementById('botToken').value.trim();
+            const btn = document.getElementById('restoreBtn');
+
+            if (!confirm('WARNING: Start Member Restoration?\n\nThis will attempt to add all saved members to the new server.\n\nMake sure:\n- Your bot is in the new server\n- Bot has proper permissions\n- You have the correct server ID\n\nContinue?')) {
+                return;
+            }
+
+            btn.disabled = true;
+            btn.textContent = 'Restoring Members...';
+            toast.info('Member restoration started. This may take several minutes...');
+
+            try {
+                const response = await fetch('/api/admin/restore-members', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ newGuildId, botToken }),
+                    credentials: 'include'
+                });
+
+                const data = await response.json();
+
+                if (response.ok && data.success) {
+                    document.getElementById('restoreResults').style.display = 'block';
+
+                    let resultsHTML = `
+                        <div class="success-box">
+                            <strong>Restoration Complete!</strong>
+                            <p style="margin: 0.5rem 0 0 0;">Successfully added ${data.stats.success} out of ${data.stats.total} members to the new server.</p>
+                        </div>
+                    `;
+
+                    if (data.stats.failed > 0) {
+                        resultsHTML += `
+                            <div class="warning-box">
+                                <strong>Failed: ${data.stats.failed} members</strong>
+                                <p style="margin: 0.5rem 0 0 0;">Some members could not be added. Common reasons: expired tokens, user blocked bot, or user left Discord.</p>
+                            </div>
+                        `;
+                    }
+
+                    document.getElementById('restoreStats').innerHTML = resultsHTML;
+
+                    if (data.stats.errors && data.stats.errors.length > 0) {
+                        let errorsHTML = '<details><summary>View Failed Users</summary><ul>';
+                        data.stats.errors.slice(0, 10).forEach(err => {
+                            errorsHTML += `<li>${err.username}: ${err.error}</li>`;
+                        });
+                        if (data.stats.errors.length > 10) {
+                            errorsHTML += `<li>... and ${data.stats.errors.length - 10} more</li>`;
+                        }
+                        errorsHTML += '</ul></details>';
+                        document.getElementById('restoreErrors').innerHTML = errorsHTML;
+                    }
+
+                    toast.success(data.message);
+                } else {
+                    toast.error(data.error || 'Failed to restore members');
+                }
+            } catch (error) {
+                console.error('Restoration error:', error);
+                toast.error('Connection error. Please try again.');
+            } finally {
+                btn.disabled = false;
+                btn.textContent = 'Start Member Restoration';
+            }
+        });
+
+        // Guest Management Functions
+        async function loadGuests() {
+            const container = document.getElementById('guestsContainer');
+            container.innerHTML = '<div class="loading-spinner">Loading guest users...</div>';
+
+            try {
+                const response = await fetch('/api/admin/guests', { credentials: 'include' });
+                if (!response.ok) throw new Error(`HTTP ${response.status}`);
+
+                const guests = await response.json();
+
+                if (guests.length === 0) {
+                    container.innerHTML = '<div class="empty-state">No guest users found</div>';
+                    return;
+                }
+
+                let tableHTML = `
+                    <div class="table-wrapper">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Username</th>
+                                <th>Discord Status</th>
+                                <th>Pass Status</th>
+                                <th>Package</th>
+                                <th>Created</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                `;
+
+                guests.forEach(guest => {
+                    const discordStatus = guest.discordVerified ? 'Verified' : 'Not Verified';
+                    const passStatus = guest.guestPassUsed ? 'Used' : 'Available';
+                    const packageType = guest.guestPassType || 'N/A';
+                    const createdDate = new Date(guest.createdAt).toLocaleDateString('en-IN');
+
+                    tableHTML += `
+                        <tr>
+                            <td><strong>${guest.username}</strong><span class="guest-badge">GUEST</span></td>
+                            <td>${discordStatus}</td>
+                            <td>${passStatus}</td>
+                            <td>${packageType}</td>
+                            <td>${createdDate}</td>
+                            <td>
+                                <button class="action-btn btn-bulk-delete" onclick="bulkDeleteGuest('${guest.username}')">
+                                    Bulk Delete
+                                </button>
+                                <button class="action-btn btn-upgrade" onclick="upgradeGuest('${guest.username}')">
+                                    Upgrade
+                                </button>
+                            </td>
+                        </tr>
+                    `;
+                });
+
+                tableHTML += '</tbody></table></div>';
+                container.innerHTML = tableHTML;
+
+            } catch (error) {
+                console.error('Load guests error:', error);
+                toast.error('Failed to load guest users');
+                container.innerHTML = '<div class="empty-state">Failed to load guests</div>';
+            }
+        }
+
+        async function bulkDeleteGuest(username) {
+            if (!confirm(`BULK DELETE WARNING\n\nThis will permanently delete:\n- Guest user: ${username}\n- All their UIDs from database\n- All their UIDs from API server\n- All associated data\n\nThis action CANNOT be undone!\n\nContinue?`)) {
+                return;
+            }
+
+            const secondConfirm = prompt(`Type "${username}" to confirm deletion:`);
+            if (secondConfirm !== username) {
+                toast.error('Deletion cancelled - username mismatch');
+                return;
+            }
+
+            toast.info('Deleting guest user and UIDs... Please wait...');
+
+            try {
+                const response = await fetch('/api/admin/delete-guest-bulk', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username }),
+                    credentials: 'include'
+                });
+
+                const data = await response.json();
+
+                if (response.ok && data.success) {
+                    toast.success(data.message);
+                    loadGuests();
+                    loadUsersManagement();
+                    loadUsers();
+                    loadUids();
+                } else {
+                    toast.error(data.error || 'Failed to delete guest');
+                }
+            } catch (error) {
+                console.error('Bulk delete error:', error);
+                toast.error('Connection error. Please try again.');
+            }
+        }
+
+        async function upgradeGuest(username) {
+            const credits = prompt(`How many credits to give ${username} after upgrade?`, '10');
+            if (!credits) return;
+
+            const creditsNum = parseInt(credits);
+            if (isNaN(creditsNum) || creditsNum < 0) {
+                toast.error('Invalid credits amount');
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/admin/upgrade-guest', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, credits: creditsNum }),
+                    credentials: 'include'
+                });
+
+                const data = await response.json();
+
+                if (response.ok && data.success) {
+                    toast.success(data.message);
+                    loadGuests();
+                    loadUsersManagement();
+                    loadUsers();
+                } else {
+                    toast.error(data.error || 'Failed to upgrade guest');
+                }
+            } catch (error) {
+                console.error('Upgrade guest error:', error);
+                toast.error('Connection error. Please try again.');
+            }
+        }
+
+        // User Management Functions
+        async function loadUsersManagement() {
+            const container = document.getElementById('usersManagementContainer');
+            container.innerHTML = '<div class="loading-spinner">Loading users...</div>';
+
+            try {
+                const response = await fetch('/api/admin/users', { credentials: 'include' });
+                const users = await response.json();
+
+                if (users.length === 0) {
+                    container.innerHTML = '<div class="empty-state">No users found</div>';
+                    return;
+                }
+
+                let tableHTML = `
+                    <div class="table-wrapper">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Username</th>
+                                <th>Credits</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                `;
+
+                users.forEach(user => {
+                    const isPaused = user.isPaused || false;
+                    const statusClass = isPaused ? 'status-paused' : 'status-active';
+                    const statusText = isPaused ? 'Paused' : 'Active';
+
+                    tableHTML += `
+                        <tr>
+                            <td><strong>${user.username}</strong></td>
+                            <td>${user.credits || 0} credits</td>
+                            <td><span class="status-badge ${statusClass}">${statusText}</span></td>
+                            <td>
+                                <button class="action-btn ${isPaused ? 'btn-resume' : 'btn-pause'}" 
+                                        onclick="pauseUser('${user.username}')">
+                                    ${isPaused ? 'Resume' : 'Pause'}
+                                </button>
+                                <button class="action-btn btn-delete" onclick="deleteUser('${user.username}')">
+                                    Delete
+                                </button>
+                            </td>
+                        </tr>
+                    `;
+                });
+
+                tableHTML += '</tbody></table></div>';
+                container.innerHTML = tableHTML;
+            } catch (error) {
+                console.error('Failed to load users:', error);
+                toast.error('Failed to load users');
+                container.innerHTML = '<div class="empty-state">Failed to load users</div>';
+            }
+        }
+
+        async function pauseUser(username) {
+            if (!confirm(`Are you sure you want to pause/resume ${username}?`)) return;
+
+            try {
+                const response = await fetch('/api/admin/pause-user', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username }),
+                    credentials: 'include'
+                });
+
+                const data = await response.json();
+
+                if (response.ok && data.success) {
+                    toast.success(data.message);
+                    loadUsersManagement();
+                } else {
+                    toast.error(data.error || 'Failed to update user');
+                }
+            } catch (error) {
+                console.error('Pause user error:', error);
+                toast.error('Connection error. Please try again.');
+            }
+        }
+
+        async function deleteUser(username) {
+            if (!confirm(`WARNING: Delete ${username}?\n\nThis action CANNOT be undone!`)) return;
+
+            try {
+                const response = await fetch('/api/admin/delete-user', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username }),
+                    credentials: 'include'
+                });
+
+                const data = await response.json();
+
+                if (response.ok && data.success) {
+                    toast.success(`User ${username} deleted successfully`);
+                    loadUsersManagement();
+                    loadUsers();
+                    loadUserIPs();
+                } else {
+                    toast.error(data.error || 'Failed to delete user');
+                }
+            } catch (error) {
+                console.error('Delete user error:', error);
+                toast.error('Connection error. Please try again.');
+            }
+        }
+
+        // IP Management Functions
+        async function loadUserIPs() {
+            const container = document.getElementById('ipManagementContainer');
+            container.innerHTML = '<div class="loading-spinner">Loading IP addresses...</div>';
+
+            try {
+                const response = await fetch('/api/admin/user-ips', { credentials: 'include' });
+                if (!response.ok) throw new Error(`HTTP ${response.status}`);
+
+                const users = await response.json();
+
+                if (users.length === 0) {
+                    container.innerHTML = '<div class="empty-state">No users found</div>';
+                    return;
+                }
+
+                let tableHTML = `
+                    <div class="table-wrapper">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Username</th>
+                                <th>Whitelisted IP</th>
+                                <th>IP Set Date</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                `;
+
+                users.forEach(user => {
+                    const ip = user.whitelistedIP || 'Not set';
+                    const ipDate = user.ipSetAt ? new Date(user.ipSetAt).toLocaleString('en-IN', {
+                        timeZone: 'Asia/Kolkata',
+                        year: 'numeric',
+                        month: 'short',
+                        day: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit'
+                    }) : 'N/A';
+                    const canReset = user.whitelistedIP ? true : false;
+
+                    tableHTML += `
+                        <tr>
+                            <td><strong>${user.username}</strong></td>
+                            <td><code style="background: var(--surface-alt); padding: 4px 8px; border-radius: 4px; font-family: monospace; color: var(--text-primary);">${ip}</code></td>
+                            <td>${ipDate}</td>
+                            <td>
+                                ${canReset ? `
+                                    <button class="action-btn btn-reset" onclick="resetUserIP('${user.username}')">
+                                        Reset IP
+                                    </button>
+                                ` : '<span style="color: var(--text-tertiary);">No IP set</span>'}
+                            </td>
+                        </tr>
+                    `;
+                });
+
+                tableHTML += '</tbody></table></div>';
+                container.innerHTML = tableHTML;
+            } catch (error) {
+                console.error('Failed to load IPs:', error);
+                toast.error('Failed to load IP addresses');
+                container.innerHTML = '<div class="empty-state">Error loading IPs</div>';
+            }
+        }
+
+        async function resetUserIP(username) {
+            if (!confirm(`Reset IP whitelist for ${username}?`)) return;
+
+            try {
+                const response = await fetch('/api/admin/reset-ip', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username }),
+                    credentials: 'include'
+                });
+
+                const data = await response.json();
+
+                if (response.ok && data.success) {
+                    toast.success(data.message);
+                    loadUserIPs();
+                } else {
+                    toast.error(data.error || 'Failed to reset IP');
+                }
+            } catch (error) {
+                console.error('Reset IP error:', error);
+                toast.error('Connection error. Please try again.');
+            }
+        }
+
+        // Network Security Functions
+        async function loadNetworkFingerprints() {
+            const container = document.getElementById('networkContainer');
+            container.innerHTML = '<div class="loading-spinner">Loading network locks...</div>';
+
+            try {
+                const response = await fetch('/api/admin/user-ips', { credentials: 'include' });
+                if (!response.ok) throw new Error(`HTTP ${response.status}`);
+
+                const users = await response.json();
+                const lockedUsers = users.filter(u => u.networkFingerprint);
+
+                if (lockedUsers.length === 0) {
+                    container.innerHTML = '<div class="empty-state">No network locks found</div>';
+                    return;
+                }
+
+                let tableHTML = `
+                    <div class="table-wrapper">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Username</th>
+                                <th>Network Fingerprint</th>
+                                <th>Locked Since</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                `;
+
+                lockedUsers.forEach(user => {
+                    const fingerprint = user.networkFingerprint ?
+                        user.networkFingerprint.substring(0, 16) + '...' : 'Not set';
+                    const lockedDate = user.fingerprintLockedAt ?
+                        new Date(user.fingerprintLockedAt).toLocaleString('en-IN') : 'N/A';
+
+                    tableHTML += `
+                        <tr>
+                            <td><strong>${user.username}</strong></td>
+                            <td><code style="font-size: 11px; background: var(--surface-alt); padding: 4px 8px; border-radius: 4px; color: var(--text-primary);">${fingerprint}</code></td>
+                            <td>${lockedDate}</td>
+                            <td>
+                                <button class="action-btn btn-reset" onclick="resetNetworkLock('${user.username}')">
+                                    Reset Network
+                                </button>
+                            </td>
+                        </tr>
+                    `;
+                });
+
+                tableHTML += '</tbody></table></div>';
+                container.innerHTML = tableHTML;
+
+            } catch (error) {
+                console.error('Load network error:', error);
+                toast.error('Failed to load network locks');
+                container.innerHTML = '<div class="empty-state">Failed to load network locks</div>';
+            }
+        }
+
+        async function resetNetworkLock(username) {
+            if (!confirm(`Reset network fingerprint lock for ${username}?\n\nThey will be able to login from any network on their next login.`)) return;
+
+            try {
+                const response = await fetch('/api/admin/reset-network', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username }),
+                    credentials: 'include'
+                });
+
+                const data = await response.json();
+
+                if (response.ok && data.success) {
+                    toast.success(data.message);
+                    loadNetworkFingerprints();
+                } else {
+                    toast.error(data.error || 'Failed to reset network');
+                }
+            } catch (error) {
+                console.error('Reset network error:', error);
+                toast.error('Connection error. Please try again.');
+            }
+        }
+
+        // UID Management Functions
+        async function loadUids() {
+            const container = document.getElementById('uidListContainer');
+            container.innerHTML = '<div class="loading-spinner">Loading UIDs...</div>';
+
+            try {
+                const response = await fetch('/api/admin/uids', { credentials: 'include' });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const data = await response.json();
+
+                let uids = [];
+                if (data.uids && Array.isArray(data.uids)) {
+                    uids = data.uids;
+                } else if (Array.isArray(data)) {
+                    uids = data;
+                }
+
+                if (uids.length > 0) {
+                    const total = uids.length;
+                    const active = uids.filter(u => u.status === 'active').length;
+                    const expired = total - active;
+
+                    document.getElementById('totalUids').textContent = total;
+                    document.getElementById('activeUids').textContent = active;
+                    document.getElementById('expiredUids').textContent = expired;
+
+                    let tableHTML = `
+                        <div class="table-wrapper">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>UID</th>
+                                    <th>Duration</th>
+                                    <th>Time Left</th>
+                                    <th>Created By</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                    `;
+
+                    uids.forEach(uid => {
+                        const uidValue = uid.uid || 'N/A';
+                        const duration = uid.duration ? `${uid.duration}h` : 'N/A';
+                        const timeLeft = uid.timeLeft || 'N/A';
+                        const createdBy = uid.createdBy || 'Unknown';
+                        const status = uid.status || 'active';
+                        const statusClass = status === 'active' ? 'status-active' : 'status-expired';
+
+                        tableHTML += `
+                            <tr>
+                                <td><strong>${uidValue}</strong></td>
+                                <td>${duration}</td>
+                                <td>${timeLeft}</td>
+                                <td>${createdBy}</td>
+                                <td><span class="status-badge ${statusClass}">${status.toUpperCase()}</span></td>
+                            </tr>
+                        `;
+                    });
+
+                    tableHTML += '</tbody></table></div>';
+                    container.innerHTML = tableHTML;
+                } else {
+                    document.getElementById('totalUids').textContent = '0';
+                    document.getElementById('activeUids').textContent = '0';
+                    document.getElementById('expiredUids').textContent = '0';
+                    container.innerHTML = '<div class="empty-state">No UIDs found.</div>';
+                }
+            } catch (error) {
+                console.error('Failed to load UIDs:', error);
+                toast.error('Failed to load UIDs');
+                container.innerHTML = '<div class="empty-state">Failed to load UIDs</div>';
+            }
+        }
+
+        // Form Handlers
+        document.getElementById('createAccountForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const username = document.getElementById('newUsername').value;
+            const password = document.getElementById('newPassword').value;
+            const isAdmin = document.getElementById('makeAdmin').checked;
+            const isGuest = document.getElementById('makeGuest').checked;
+            const btn = document.getElementById('createAccountBtn');
+
+            btn.disabled = true;
+            btn.textContent = 'Creating...';
+
+            try {
+                const response = await fetch('/api/admin/create-account', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, password, isAdmin, isGuest }),
+                    credentials: 'include'
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    toast.success(data.message);
+                    document.getElementById('createAccountForm').reset();
+                    loadUsers();
+                    loadUsersManagement();
+                    loadUserIPs();
+                    if (isGuest) loadGuests();
+                } else {
+                    toast.error(data.error);
+                }
+            } catch (error) {
+                toast.error('Connection error. Please try again.');
+            } finally {
+                btn.disabled = false;
+                btn.textContent = 'Create Account';
+            }
+        });
+
+        document.getElementById('creditForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const username = document.getElementById('creditUsername').value;
+            const amount = parseInt(document.getElementById('creditAmount').value);
+            const btn = document.getElementById('creditBtn');
+
+            btn.disabled = true;
+            btn.textContent = 'Adding...';
+
+            try {
+                const response = await fetch('/api/admin/give-credits', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, amount }),
+                    credentials: 'include'
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    toast.success(`Added ${amount} credits to ${username}. New balance: ${data.newBalance}`);
+                    document.getElementById('creditForm').reset();
+                    loadUsers();
+                    loadUsersManagement();
+                } else {
+                    toast.error(data.error);
+                }
+            } catch (error) {
+                toast.error('Connection error. Please try again.');
+            } finally {
+                btn.disabled = false;
+                btn.textContent = 'Add Credits';
+            }
+        });
+
+        // Simple User List
+        async function loadUsers() {
+            const container = document.getElementById('usersList');
+
+            try {
+                const response = await fetch('/api/admin/users', { credentials: 'include' });
+                const users = await response.json();
+
+                if (users.length === 0) {
+                    container.innerHTML = '<div class="empty-state">No users found</div>';
+                    return;
+                }
+
+                container.innerHTML = users.map(user => `
+                    <div class="user-item">
+                        <span>${user.username}</span>
+                        <span>${user.credits} credits</span>
+                    </div>
+                `).join('');
+            } catch (error) {
+                container.innerHTML = '<div class="empty-state">Failed to load users</div>';
+            }
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log('Admin panel initialized');
+            checkUserRole(); // Check user role first
+            loadRestorationStats();
+            loadGuests();
+            loadUsers();
+            loadUsersManagement();
+            loadUserIPs();
+            loadNetworkFingerprints();
+            loadUids();
+        });
+        // Create Owner Form Handler
+        document.getElementById('createOwnerForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const username = document.getElementById('ownerUsername').value;
+            const password = document.getElementById('ownerPassword').value;
+            const btn = document.getElementById('createOwnerBtn');
+
+            btn.disabled = true;
+            btn.textContent = 'Creating...';
+
+            try {
+                const response = await fetch('/api/admin/create-owner', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, password }),
+                    credentials: 'include'
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    toast.success(data.message);
+                    document.getElementById('createOwnerForm').reset();
+                    loadUsers();
+                    loadUsersManagement();
+                } else {
+                    toast.error(data.error);
+                }
+            } catch (error) {
+                toast.error('Failed to create owner');
+            } finally {
+                btn.disabled = false;
+                btn.textContent = 'Create Owner';
+            }
+        });
+
+        // Hide Owner creation form from Owners (only Super Admin can see)
+        async function checkOwnerForm() {
+            try {
+                const response = await fetch('/api/user', { credentials: 'include' });
+                const userData = await response.json();
+
+                if (userData.isOwner && !userData.isSuperAdmin) {
+                    const ownerSection = document.getElementById('createOwnerSection');
+                    if (ownerSection) {
+                        ownerSection.style.display = 'none';
+                    }
+                }
+            } catch (error) {
+                console.error('Check owner form error:', error);
+            }
+        }
+
+        // Call it on page load
+        checkOwnerForm();
+
+    </script>
+</body>
+
+</html>

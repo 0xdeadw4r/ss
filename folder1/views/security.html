@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Security Settings - UID Manager</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <style>
+        .container {
+            max-width: 1200px;
+            margin: 2rem auto;
+            padding: 0 1.5rem;
+        }
+
+        .security-section {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .security-section h3 {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin: 0 0 1rem 0;
+        }
+
+        .section-description {
+            font-size: 13px;
+            color: var(--text-secondary);
+            margin-bottom: 1rem;
+            line-height: 1.5;
+        }
+
+        .status-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 0;
+            border-top: 1px solid var(--border);
+        }
+
+        .status-label {
+            font-weight: 600;
+            font-size: 14px;
+            color: var(--text-primary);
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 0.4rem 1rem;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .status-enabled {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .status-disabled {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .qr-code-container {
+            text-align: center;
+            margin: 1.5rem 0;
+            background: var(--surface-alt);
+            padding: 2rem;
+            border-radius: 6px;
+            border: 1px solid var(--border);
+        }
+
+        .qr-code-container img {
+            border: 2px solid var(--border);
+            border-radius: 6px;
+            padding: 1rem;
+            background: var(--surface);
+            max-width: 280px;
+        }
+
+        .backup-codes {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 0.75rem;
+            margin: 1.5rem 0;
+        }
+
+        .backup-code {
+            background: var(--surface-alt);
+            padding: 0.8rem;
+            text-align: center;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            border-radius: 4px;
+            border: 1px solid var(--border);
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .info-notice {
+            background: #e3f2fd;
+            border-left: 3px solid #2196f3;
+            padding: 1rem;
+            border-radius: 4px;
+            margin-bottom: 1.5rem;
+            font-size: 13px;
+            color: #1565c0;
+            line-height: 1.5;
+        }
+
+        .warning-notice {
+            background: #fff3cd;
+            border-left: 3px solid #ffc107;
+            padding: 1rem;
+            border-radius: 4px;
+            margin-bottom: 1.5rem;
+            font-size: 13px;
+            color: #856404;
+            line-height: 1.5;
+        }
+
+        .step-label {
+            font-weight: 600;
+            font-size: 13px;
+            color: var(--text-primary);
+            margin: 1.5rem 0 0.5rem 0;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .btn-enable {
+            background: linear-gradient(135deg, var(--primary-yellow) 0%, var(--yellow-hover) 100%);
+            color: var(--text-inverse);
+            border: none;
+            padding: 0.8rem 1.5rem;
+            border-radius: 4px;
+            font-weight: 500;
+            cursor: pointer;
+            font-size: 13px;
+        }
+
+        .btn-enable:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-yellow);
+        }
+
+        .btn-disable {
+            background: #dc3545;
+            color: #fff;
+            border: none;
+            padding: 0.8rem 1.5rem;
+            border-radius: 4px;
+            font-weight: 500;
+            cursor: pointer;
+            font-size: 13px;
+        }
+
+        .btn-disable:hover {
+            background: #c82333;
+        }
+
+        .form-group {
+            margin-bottom: 1rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.4rem;
+            font-size: 12px;
+            font-weight: 500;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+        }
+
+        .manual-code {
+            background: var(--surface-alt);
+            padding: 0.75rem 1rem;
+            display: inline-block;
+            margin-top: 0.75rem;
+            border-radius: 4px;
+            font-weight: 600;
+            font-family: 'Courier New', monospace;
+            border: 1px solid var(--border);
+        }
+    </style>
+</head>
+
+<body>
+    <nav>
+        <a href="/dashboard" class="nav-brand">
+            <img src="/images/logo.webp" alt="UID Manager Logo" class="nav-logo">
+            <h1>UID Manager</h1>
+        </a>
+        <button class="mobile-menu-toggle">
+            <span></span>
+            <span></span>
+            <span></span>
+        </button>
+        <div class="nav-links">
+            <a href="/dashboard">Dashboard</a>
+            <a href="/packages">Packages</a>
+            <a href="/admin" id="adminLink" style="display:none;">Admin</a>
+            <a href="/buy-credits">Buy Credits</a>
+            <a href="/invoices">Invoices</a>
+            <a href="/settings">Settings</a>
+            <a href="/security">Security</a>
+            <button id="themeToggle" onclick="toggleTheme()" aria-label="Toggle theme">🌙</button>
+            <button onclick="logout()">Logout</button>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="header">
+            <h2>Security Settings</h2>
+        </div>
+
+        <div id="statusMessage" class="message" style="display: none;"></div>
+
+        <!-- Mandatory 2FA Notice -->
+        <div class="warning-notice">
+            <strong>Security Requirement:</strong> Two-Factor Authentication is mandatory for creating UIDs. Please
+            enable 2FA below to access UID creation features.
+        </div>
+
+        <!-- 2FA Status Section -->
+        <div class="security-section">
+            <h3>Two-Factor Authentication</h3>
+            <p class="section-description">
+                Protect your account with an additional layer of security. When enabled, you'll need to enter a code
+                from your authenticator app during login.
+            </p>
+
+            <div class="status-row">
+                <div>
+                    <span class="status-label">Current Status:</span>
+                    <span id="2faStatus" class="status-badge status-disabled">Disabled</span>
+                </div>
+                <div id="2faControls"></div>
+            </div>
+        </div>
+
+        <!-- Setup 2FA Section -->
+        <div id="setup2fa" style="display: none;" class="security-section">
+            <h3>Enable Two-Factor Authentication</h3>
+
+            <div class="info-notice">
+                <strong>Required:</strong> Download an authenticator app like Google Authenticator, Microsoft
+                Authenticator, or Authy on your smartphone before proceeding.
+            </div>
+
+            <div class="step-label">Step 1: Scan QR Code</div>
+            <p class="section-description">Scan this QR code with your authenticator app:</p>
+            <div class="qr-code-container" id="qrCodeContainer"></div>
+
+            <div class="step-label">Step 2: Verify Setup</div>
+            <p class="section-description">Enter the 6-digit code from your authenticator app to complete setup:</p>
+            <form id="verify2faForm">
+                <input type="text" id="verifyToken" placeholder="Enter 6-digit code" maxlength="6" pattern="[0-9]{6}"
+                    required>
+                <button type="submit" class="btn-enable">Verify and Enable 2FA</button>
+            </form>
+        </div>
+
+        <!-- Backup Codes Display -->
+        <div id="backupCodesDisplay" style="display: none;" class="security-section">
+            <h3>Save Your Backup Codes</h3>
+            <div class="warning-notice">
+                <strong>Important:</strong> Save these codes in a safe place. Each code can be used once if you lose
+                access to your authenticator app.
+            </div>
+            <div class="backup-codes" id="backupCodesList"></div>
+            <button onclick="hideBackupCodes()" class="btn-enable">I've Saved My Codes</button>
+        </div>
+
+        <!-- Disable 2FA Section -->
+        <div id="disable2fa" style="display: none;" class="security-section">
+            <h3>Disable Two-Factor Authentication</h3>
+            <div class="warning-notice">
+                <strong>Warning:</strong> Disabling 2FA will reduce your account security and remove access to UID
+                creation features.
+            </div>
+            <form id="disable2faForm">
+                <div class="form-group">
+                    <label>Current Password</label>
+                    <input type="password" id="disablePassword" placeholder="Enter your password" required>
+                </div>
+                <div class="form-group">
+                    <label>2FA Code</label>
+                    <input type="text" id="disableToken" placeholder="Enter 6-digit code" maxlength="6" required>
+                </div>
+                <button type="submit" class="btn-disable">Disable 2FA</button>
+            </form>
+        </div>
+    </div>
+
+    <script src="/js/theme.js"></script>
+    <script src="/js/navigation.js"></script>
+    <script src="/js/main.js"></script>
+    <script src="/js/notifications.js"></script>
+    <script>
+        let twoFactorEnabled = false;
+
+        async function load2FAStatus() {
+            try {
+                const response = await fetch('/api/2fa/status', {
+                    credentials: 'include'
+                });
+                const data = await response.json();
+
+                twoFactorEnabled = data.enabled;
+
+                const statusBadge = document.getElementById('2faStatus');
+                const controls = document.getElementById('2faControls');
+
+                if (data.enabled) {
+                    statusBadge.textContent = 'Enabled';
+                    statusBadge.className = 'status-badge status-enabled';
+                    controls.innerHTML = '<button onclick="showDisable2FA()" class="btn-disable" style="font-size: 13px; padding: 0.6rem 1.2rem;">Disable 2FA</button>';
+                } else {
+                    statusBadge.textContent = 'Disabled';
+                    statusBadge.className = 'status-badge status-disabled';
+                    controls.innerHTML = '<button onclick="setup2FA()" class="btn-enable" style="font-size: 13px; padding: 0.6rem 1.2rem;">Enable 2FA</button>';
+                }
+
+                // Show admin link for all admin roles
+                const userResponse = await fetch('/api/user', { credentials: 'include' });
+                const user = await userResponse.json();
+                if (user.isAdmin || user.isSuperAdmin || user.isOwner || user.isLimitedAdmin) {
+                    document.getElementById('adminLink').style.display = 'block';
+                }
+            } catch (error) {
+                console.error('Failed to load 2FA status:', error);
+                toast.error('Failed to load 2FA status');
+            }
+        }
+
+        async function setup2FA() {
+            try {
+                const response = await fetch('/api/2fa/setup', {
+                    method: 'POST',
+                    credentials: 'include'
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    toast.info('Scan the QR code with your authenticator app');
+                    document.getElementById('setup2fa').style.display = 'block';
+                    document.getElementById('qrCodeContainer').innerHTML = `
+                        <img src="${data.qrCode}" alt="QR Code">
+                        <p class="section-description" style="margin-top: 1rem;">
+                            Cannot scan? Enter this code manually:<br>
+                            <span class="manual-code">${data.secret}</span>
+                        </p>
+                    `;
+                    document.getElementById('setup2fa').scrollIntoView({ behavior: 'smooth' });
+                } else {
+                    toast.error(data.error || 'Failed to setup 2FA');
+                }
+            } catch (error) {
+                toast.error('Failed to setup 2FA');
+            }
+        }
+
+        document.getElementById('verify2faForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const token = document.getElementById('verifyToken').value;
+            const btn = e.target.querySelector('button');
+            btn.disabled = true;
+            btn.textContent = 'Verifying...';
+
+            try {
+                const response = await fetch('/api/2fa/verify', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ token }),
+                    credentials: 'include'
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    toast.success('2FA enabled successfully! Save your backup codes.');
+                    document.getElementById('setup2fa').style.display = 'none';
+
+                    const codesHtml = data.backupCodes.map(code =>
+                        `<div class="backup-code">${code}</div>`
+                    ).join('');
+                    document.getElementById('backupCodesList').innerHTML = codesHtml;
+                    document.getElementById('backupCodesDisplay').style.display = 'block';
+                    document.getElementById('backupCodesDisplay').scrollIntoView({ behavior: 'smooth' });
+
+                    load2FAStatus();
+                } else {
+                    toast.error(data.error || 'Invalid verification code');
+                    btn.disabled = false;
+                    btn.textContent = 'Verify and Enable 2FA';
+                }
+            } catch (error) {
+                toast.error('Failed to verify code');
+                btn.disabled = false;
+                btn.textContent = 'Verify and Enable 2FA';
+            }
+        });
+
+        function hideBackupCodes() {
+            document.getElementById('backupCodesDisplay').style.display = 'none';
+            toast.success('2FA is now active! You can create UIDs.');
+        }
+
+        function showDisable2FA() {
+            document.getElementById('disable2fa').style.display = 'block';
+            document.getElementById('disable2fa').scrollIntoView({ behavior: 'smooth' });
+            toast.warning('Disabling 2FA will remove UID creation access');
+        }
+
+        document.getElementById('disable2faForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const password = document.getElementById('disablePassword').value;
+            const token = document.getElementById('disableToken').value;
+            const btn = e.target.querySelector('button');
+            btn.disabled = true;
+            btn.textContent = 'Disabling...';
+
+            try {
+                const response = await fetch('/api/2fa/disable', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ password, token }),
+                    credentials: 'include'
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    toast.success('2FA disabled successfully');
+                    document.getElementById('disable2fa').style.display = 'none';
+                    load2FAStatus();
+                } else {
+                    toast.error(data.error || 'Failed to disable 2FA');
+                    btn.disabled = false;
+                    btn.textContent = 'Disable 2FA';
+                }
+            } catch (error) {
+                toast.error('Failed to disable 2FA');
+                btn.disabled = false;
+                btn.textContent = 'Disable 2FA';
+            }
+        });
+
+        function showMessage(text, type) {
+            const msg = document.getElementById('statusMessage');
+            msg.textContent = text;
+            msg.className = `message ${type}`;
+            msg.style.display = 'block';
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+            setTimeout(() => msg.style.display = 'none', 5000);
+        }
+
+        document.addEventListener('DOMContentLoaded', load2FAStatus);
+    </script>
+</body>
+
+</html>
